@@ -1,39 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <record id="indirect_costs_account_move_form" model="ir.ui.view">
-	<field name="name">indirect.costs.account.move.form</field>
-	<field name="model">account.move</field>
-	<field name="inherit_id" ref="account.view_move_form"></field>
-	<field name="arch" type="xml">
-		<field name="ref" position="after">
-			<field name="purchase_order_id" 
-				options="{'no_quick_create': True, 'no_create_edit' : True}" 
-				attrs="{'invisible': [('move_type','not in',['in_invoice','in_refund'])]}"/>
+
+	<record model="ir.ui.view" id="product_product_cost_tree">
+		<field name="name">product.product.cost.tree</field>
+		<field name="model">product.product.cost</field>
+		<field name="arch" type="xml">
+			<tree string="Planta">
+				<field name="order_id" />
+				<field name="date" />
+				<field name="total_unit_cost" />
+				<field name="direct_cost" />
+				<field name="indirect_cost" />
+			</tree>
 		</field>
+	</record>
+
+	<record model="ir.actions.act_window" id="action_product_product_cost">
+		<field name="name">Costos de Productos</field>
+		<field name="res_model">product.product.cost</field>
+		<field name="view_mode">tree,form</field>
+	</record>
+
+
+	<menuitem name="Costos" id="product_upload_prices_menu"
+		parent="purchase.menu_purchase_products"
+		action="action_product_product_cost"
+		sequence="100"/>
+
+
+    <record id="indirect_costs_product_product_form" model="ir.ui.view">
+	<field name="name">indirect.costs.product.product.form</field>
+	<field name="model">product.product</field>
+	<field name="inherit_id" ref="product.product_normal_form_view"></field>
+	<field name="arch" type="xml">
+		<xpath expr="//notebook" position="inside">
+			<page string="Costos">
+				<br />
+				<group>
+					<field name="standard_price" readonly="1"/>
+					<field name="direct_cost" readonly="1"/>
+					<field name="indirect_cost" readonly="1"/>
+				</group>
+				<group>
+					<field name="cost_ids" readonly="1">
+						<tree>
+							<field name="order_id" />
+							<field name="date" />
+							<field name="total_unit_cost" />
+							<field name="direct_cost" />
+							<field name="indirect_cost" />
+						</tree>
+					</field>
+				</group>
+			</page>
+		</xpath>
         </field>
 </record>
+
 
     <record id="indirect_costs_purchase_order_form" model="ir.ui.view">
 	<field name="name">indirect.costs.purchase.order.form</field>
 	<field name="model">purchase.order</field>
 	<field name="inherit_id" ref="purchase.purchase_order_form"></field>
 	<field name="arch" type="xml">
+		<xpath expr="//header" position="inside">
+			<button name="btn_update_unit_costs"
+				string="Actualizar costos"
+				type="object"
+				confirm="Esta seguro que quiere actualizar los costos?"
+				states="purchase,done" />
+		</xpath>
 		<xpath expr="//field[@name='order_line']/tree/field[@name='price_subtotal']" position="after">
 			<field name="total_unit_cost" optional="hide" />
+			<field name="direct_cost" optional="hide" />
+			<field name="indirect_cost" optional="hide" />
 		</xpath>
 		<xpath expr="//notebook" position="inside">
-			<page string="Factura">
+			<page string="Facturas">
+				<br />
 				<group>
-					<field name="account_move_ids" readonly="1">
-						<tree>
-							<field name="name" />
-							<field name="invoice_partner_display_name" />
-							<field name="invoice_date" />
+					<field name="cost_ids" >
+						<tree editable="bottom">
+							<field name="move_id" />
+							<field name="partner_id" />
 							<field name="currency_id" />
-							<field name="amount_total_signed" />
-							<field name="amount_total_in_currency_signed" />
-							<field name="state" />
+							<field name="percent" />
+							<field name="exchange_rate" />
+							<field name="amount_untaxed" />
+							<field name="amount_total" />
+							<field name="amount_untaxed_currency" />
 						</tree>
 					</field>
 				</group>
