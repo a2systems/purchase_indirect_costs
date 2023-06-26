@@ -33,7 +33,17 @@ class PurchaseOrder(models.Model):
                 else:
                     cost_id = self.env['product.product.cost'].create(vals)
 
+    def _compute_exchange_rate(self):
+        for rec in self:
+            res = True
+            if rec.currency_id.id != rec.company_id.currency_id.id:
+                res = False
+            rec.show_exchange_rate = res
+
+
     cost_ids = fields.One2many(comodel_name='purchase.order.cost',inverse_name='order_id',string='Facturas')
+    exchange_rate = fields.Float('Tipo de cambio')
+    show_exchange_rate = fields.Boolean('show_exchange_rate',compute=_compute_exchange_rate)
 
 class PurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
@@ -42,9 +52,16 @@ class PurchaseOrderLine(models.Model):
         res = 0
         for rec in self:
             if rec.order_id.amount_untaxed == 0 \
-                    or rec.order_id.state in ['sent','draft','cancel'] \
-                    or rec.currency_id.id != self.env.ref('base.USD').id:
+                    or rec.order_id.state in ['sent','draft','cancel']: 
                 res = 0
+            elif rec.currency_id.id != self.env.ref('base.USD').id and rec.order_id.exchange_rate != 0:
+                amount_invoices = 0
+                for cost in rec.order_id.cost_ids:
+                    invoice = cost.move_id
+                    #tax_percent = cost.amount_total_currency / cost.amount_untaxed_currency
+                    amount_invoices = amount_invoices + cost.amount_untaxed_currency
+                percent = rec.price_subtotal / rec.order_id.amount_untaxed
+                res = ((rec.price_subtotal / rec.exchange_rate)+ amount_invoices) / rec.product_qty
             else:
                 amount_invoices = 0
                 for cost in rec.order_id.cost_ids:

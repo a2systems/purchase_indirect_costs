@@ -76,6 +76,10 @@
 			<field name="direct_cost" optional="hide" />
 			<field name="indirect_cost" optional="hide" />
 		</xpath>
+		<field name="currency_id" position="after">
+			<field name="show_exchange_rate" invisible="1" />
+			<field name="exchange_rate" attrs="{'invisible': [('show_exchange_rate','=',False)]}" />
+		</field>
 		<xpath expr="//notebook" position="inside">
 			<page string="Facturas">
 				<br />
