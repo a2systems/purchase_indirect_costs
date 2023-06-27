@@ -61,7 +61,7 @@ class PurchaseOrderLine(models.Model):
                     #tax_percent = cost.amount_total_currency / cost.amount_untaxed_currency
                     amount_invoices = amount_invoices + cost.amount_untaxed_currency
                 percent = rec.price_subtotal / rec.order_id.amount_untaxed
-                res = ((rec.price_subtotal / rec.exchange_rate)+ amount_invoices) / rec.product_qty
+                res = ((rec.price_subtotal / rec.order_id.exchange_rate)+ amount_invoices) / rec.product_qty
             else:
                 amount_invoices = 0
                 for cost in rec.order_id.cost_ids:
@@ -71,8 +71,12 @@ class PurchaseOrderLine(models.Model):
                 percent = rec.price_subtotal / rec.order_id.amount_untaxed
                 res = (rec.price_subtotal + amount_invoices) / rec.product_qty
             rec.total_unit_cost = res
-            rec.indirect_cost = res - (rec.price_subtotal / rec.product_qty)
-            rec.direct_cost = rec.total_unit_cost - rec.indirect_cost
+            if rec.currency_id.id == self.env.ref('base.USD'):
+                rec.indirect_cost = res - (rec.price_subtotal / rec.product_qty)
+                rec.direct_cost = rec.total_unit_cost - rec.indirect_cost
+            else:
+                rec.indirect_cost = res - ((rec.price_subtotal / rec.order_id.exchange_rate)/ rec.product_qty)
+                rec.direct_cost = rec.total_unit_cost - rec.indirect_cost
 
     total_unit_cost = fields.Float('Costo total unitario',compute=_compute_total_unit_cost)
     direct_cost = fields.Float('Costo directo',compute=_compute_total_unit_cost)
