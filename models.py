@@ -75,7 +75,8 @@ class PurchaseOrderLine(models.Model):
                 rec.indirect_cost = res - (rec.price_subtotal / rec.product_qty)
                 rec.direct_cost = rec.total_unit_cost - rec.indirect_cost
             else:
-                rec.indirect_cost = res - ((rec.price_subtotal / rec.order_id.exchange_rate)/ rec.product_qty)
+                exchange_rate = rec.order_id.exchange_rate or 1
+                rec.indirect_cost = res - ((rec.price_subtotal / exchange_rate)/ rec.product_qty)
                 rec.direct_cost = rec.total_unit_cost - rec.indirect_cost
 
     total_unit_cost = fields.Float('Costo total unitario',compute=_compute_total_unit_cost)
