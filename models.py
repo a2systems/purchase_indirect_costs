@@ -61,7 +61,7 @@ class PurchaseOrderLine(models.Model):
                     #tax_percent = cost.amount_total_currency / cost.amount_untaxed_currency
                     amount_invoices = amount_invoices + cost.amount_untaxed_currency
                 percent = rec.price_subtotal / rec.order_id.amount_untaxed
-                res = ((rec.price_subtotal / rec.order_id.exchange_rate)+ amount_invoices) / rec.product_qty
+                res = (( rec.price_subtotal / rec.order_id.exchange_rate ) + amount_invoices * percent) / rec.product_qty
             else:
                 amount_invoices = 0
                 for cost in rec.order_id.cost_ids:
